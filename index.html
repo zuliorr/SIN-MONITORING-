@@ -73,7 +73,6 @@
             font-weight: 700;
             white-space: nowrap;
             overflow: hidden;
-            transition: opacity 0.2s;
         }
 
         .sidebar.collapsed .brand-title {
@@ -316,11 +315,11 @@
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .btn-primary {
@@ -332,11 +331,29 @@
             background-color: var(--accent-hover);
         }
 
+        .btn-success {
+            background-color: var(--success);
+            color: #ffffff;
+        }
+
+        .btn-success:hover {
+            background-color: #15803d;
+        }
+
+        .btn-dark {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-dark:hover {
+            background-color: var(--primary-light);
+        }
+
         .btn-danger {
             background-color: var(--danger);
             color: #ffffff;
-            padding: 6px 12px;
-            font-size: 0.8rem;
+            padding: 8px 14px;
+            font-size: 0.85rem;
         }
 
         .btn-outline {
@@ -453,6 +470,46 @@
             cursor: pointer;
             font-size: 1rem;
             line-height: 1;
+        }
+
+        /* Monthly Report Preview Box */
+        .report-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .report-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .report-summary-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            background: #ffffff;
+            padding: 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .report-stat-item span {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .report-stat-item strong {
+            font-size: 1.05rem;
+            color: var(--primary);
         }
 
         /* Admin Lock Overlay */
@@ -637,7 +694,7 @@
                 <div id="adminLoginPanel" class="panel admin-login-box">
                     <h2 style="margin-bottom: 10px;">Akses Ketua Divisi Investasi</h2>
                     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">
-                        Masukkan PIN Admin untuk mengelola daftar anggota resmi dan data jurnal. (Default PIN: <strong>1234</strong>)
+                        Masukkan PIN Admin untuk mengelola daftar anggota resmi dan dokumen laporan bulanan. (Default PIN: <strong>1234</strong>)
                     </p>
                     <div class="form-group" style="margin-bottom: 14px;">
                         <input type="password" id="adminPinInput" class="form-control" placeholder="Masukkan PIN Admin..." style="text-align: center;">
@@ -647,10 +704,113 @@
 
                 <!-- Dashboard Admin setelah login -->
                 <div id="adminDashboardContent" style="display: none;">
+                    
+                    <!-- BAGIAN BARU: PUSAT DOKUMEN REKAPITULASI BULANAN SIAP UNDUH -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Pusat Dokumen Rekapitulasi Bulanan (Siap Unduh)</h2>
+                                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                                    Format laporan resmi ber-kop perusahaan untuk disampaikan kepada Kepala Direktur & Wakil Direktur.
+                                </p>
+                            </div>
+                            <button id="btnAdminLogout" class="btn btn-outline">Kunci Portal Admin</button>
+                        </div>
+
+                        <div class="report-toolbar">
+                            <div class="form-group">
+                                <label for="reportMonthFilter">Periode Bulan</label>
+                                <select id="reportMonthFilter" class="form-control">
+                                    <option value="ALL">Semua Periode</option>
+                                    <option value="01">Januari</option>
+                                    <option value="02">Februari</option>
+                                    <option value="03">Maret</option>
+                                    <option value="04">April</option>
+                                    <option value="05">Mei</option>
+                                    <option value="06">Juni</option>
+                                    <option value="07">Juli</option>
+                                    <option value="08">Agustus</option>
+                                    <option value="09">September</option>
+                                    <option value="10">Oktober</option>
+                                    <option value="11" selected>November</option>
+                                    <option value="12">Desember</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="reportYearFilter">Tahun</label>
+                                <select id="reportYearFilter" class="form-control">
+                                    <option value="ALL">Semua Tahun</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button id="btnPrintOfficialPDF" class="btn btn-dark">
+                                    &#128424; Cetak / Simpan PDF Resmi (Ber-Kop)
+                                </button>
+                                <button id="btnExportExcelCSV" class="btn btn-success">
+                                    &#128202; Unduh Excel (.CSV Rapi)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pratinjau Ringkasan Laporan Periode Terpilih -->
+                        <div class="report-box">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <strong style="font-size: 0.92rem; color: var(--primary);" id="previewReportTitle">Pratinjau Laporan: November 2026</strong>
+                                <span style="font-size: 0.78rem; color: var(--text-muted);">Otomatis terhitung dari jurnal tervalidasi</span>
+                            </div>
+                            <div class="report-summary-strip">
+                                <div class="report-stat-item">
+                                    <span>Jumlah Transaksi</span>
+                                    <strong id="repCount">0 Sesi</strong>
+                                </div>
+                                <div class="report-stat-item">
+                                    <span>Total Profit Kotor</span>
+                                    <strong id="repGrossProfit" style="color: var(--success);">+0.00 USC</strong>
+                                </div>
+                                <div class="report-stat-item">
+                                    <span>Total Loss Kotor</span>
+                                    <strong id="repGrossLoss" style="color: var(--danger);">0.00 USC</strong>
+                                </div>
+                                <div class="report-stat-item">
+                                    <span>Net P&L Periode</span>
+                                    <strong id="repNetPnl">0.00 USC</strong>
+                                </div>
+                                <div class="report-stat-item">
+                                    <span>Tingkat Kepatuhan SOP</span>
+                                    <strong id="repCompliance">100%</strong>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive" style="background: #fff; border: 1px solid var(--border); border-radius: 6px;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Tanggal</th>
+                                            <th>Nama Anggota</th>
+                                            <th>Modal</th>
+                                            <th>Pair</th>
+                                            <th>Lot</th>
+                                            <th>Profit/Loss</th>
+                                            <th>Retur</th>
+                                            <th>Status Kepatuhan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reportPreviewBody">
+                                        <!-- Pratinjau tabel bulanan -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manajemen Daftar Anggota Resmi -->
                     <div class="panel">
                         <div class="panel-header">
                             <h2>Manajemen Daftar Anggota Resmi (Validasi Nama)</h2>
-                            <button id="btnAdminLogout" class="btn btn-outline">Kunci Portal Admin</button>
                         </div>
                         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
                             Hanya nama anggota yang tercantum di bawah ini yang dapat mengirimkan jurnal di Portal Anggota.
@@ -665,16 +825,14 @@
                         </div>
                     </div>
 
-                    <div class="panel">
+                    <!-- Pemeliharaan Data -->
+                    <div class="panel" style="border-color: #fecaca;">
                         <div class="panel-header">
-                            <h2>Kontrol Data & Ekspor Laporan</h2>
-                            <div style="display: flex; gap: 10px;">
-                                <button id="btnExportCSV" class="btn btn-primary">Unduh Laporan (CSV)</button>
-                                <button id="btnClearJournals" class="btn btn-danger">Reset Semua Jurnal</button>
-                            </div>
+                            <h2 style="color: var(--danger);">Zona Pemeliharaan Database</h2>
+                            <button id="btnClearJournals" class="btn btn-danger">Reset Semua Jurnal</button>
                         </div>
                         <p style="font-size: 0.85rem; color: var(--text-muted);">
-                            Gunakan tombol <strong>Unduh Laporan (CSV)</strong> untuk membuat laporan mingguan kepada Kepala Direktur dan Wakil Direktur.
+                            Pastikan Anda sudah mengunduh PDF / Excel laporan bulanan sebelum melakukan reset data jurnal.
                         </p>
                     </div>
                 </div>
@@ -740,7 +898,8 @@
         const DEFAULT_JOURNALS = [
             {
                 id: 1,
-                time: "19/11/2026 09:30",
+                isoDate: "2026-11-18",
+                time: "18/11/2026 09:30",
                 name: "Ahmad Fauzi",
                 modal: 5000,
                 pair: "XAUUSD",
@@ -750,6 +909,7 @@
             },
             {
                 id: 2,
+                isoDate: "2026-11-19",
                 time: "19/11/2026 11:15",
                 name: "Budi Santoso",
                 modal: 3000,
@@ -760,6 +920,7 @@
             },
             {
                 id: 3,
+                isoDate: "2026-11-19",
                 time: "19/11/2026 14:20",
                 name: "Dimas Pratama",
                 modal: 5000,
@@ -769,6 +930,12 @@
                 notes: "Overlot sebelum rilis news"
             }
         ];
+
+        const MONTH_NAMES = {
+            "01": "Januari", "02": "Februari", "03": "Maret", "04": "April",
+            "05": "Mei", "06": "Juni", "07": "Juli", "08": "Agustus",
+            "09": "September", "10": "Oktober", "11": "November", "12": "Desember"
+        };
 
         let approvedMembers = JSON.parse(localStorage.getItem('sin_approved_members')) || DEFAULT_ROSTER;
         let journalEntries = JSON.parse(localStorage.getItem('sin_journal_entries')) || DEFAULT_JOURNALS;
@@ -807,7 +974,7 @@
         });
 
         // ==========================================
-        // EVALUASI SOP & RENDER TABEL / STATISTIK
+        // EVALUASI SOP & HELPER TANGGAL
         // ==========================================
         function evaluateSOP(modal, result) {
             const pct = (result / modal) * 100;
@@ -824,8 +991,45 @@
             }
         }
 
+        function extractYearMonth(entry) {
+            if (entry.isoDate) {
+                const parts = entry.isoDate.split('-');
+                return { year: parts[0], month: parts[1] };
+            }
+            // Fallback parsing dari format DD/MM/YYYY
+            const datePart = entry.time.split(' ')[0];
+            const dParts = datePart.split('/');
+            if (dParts.length === 3) {
+                return { year: dParts[2], month: dParts[1].padStart(2, '0') };
+            }
+            return { year: "2026", month: "11" };
+        }
+
+        function getFilteredJournals() {
+            const selectedMonth = document.getElementById('reportMonthFilter').value;
+            const selectedYear = document.getElementById('reportYearFilter').value;
+
+            return journalEntries.filter(entry => {
+                const { year, month } = extractYearMonth(entry);
+                const matchMonth = (selectedMonth === "ALL" || month === selectedMonth);
+                const matchYear = (selectedYear === "ALL" || year === selectedYear);
+                return matchMonth && matchYear;
+            });
+        }
+
+        function getPeriodLabel() {
+            const m = document.getElementById('reportMonthFilter').value;
+            const y = document.getElementById('reportYearFilter').value;
+            const mText = m === "ALL" ? "Semua Bulan" : MONTH_NAMES[m];
+            const yText = y === "ALL" ? "Semua Tahun" : y;
+            return `${mText} ${yText}`;
+        }
+
+        // ==========================================
+        // RENDER UTAMA & PRATINJAU LAPORAN BULANAN
+        // ==========================================
         function renderAll() {
-            // 1. Render Tabel Jurnal
+            // 1. Render Tabel Jurnal Utama
             const tbody = document.getElementById('journalTableBody');
             tbody.innerHTML = '';
 
@@ -856,7 +1060,7 @@
                 tbody.appendChild(tr);
             });
 
-            // 2. Update Kartu Statistik
+            // 2. Update Kartu Statistik Global
             document.getElementById('statMembers').textContent = approvedMembers.length;
             document.getElementById('statTrades').textContent = journalEntries.length;
 
@@ -879,7 +1083,367 @@
                 `;
                 rosterContainer.appendChild(chip);
             });
+
+            // 4. Render Pratinjau Laporan Bulanan
+            renderMonthlyReportPreview();
         }
+
+        function renderMonthlyReportPreview() {
+            const filtered = getFilteredJournals();
+            const periodLabel = getPeriodLabel();
+            document.getElementById('previewReportTitle').textContent = `Pratinjau Dokumen Laporan: ${periodLabel}`;
+
+            let grossProfit = 0;
+            let grossLoss = 0;
+            let compliantCount = 0;
+
+            const previewBody = document.getElementById('reportPreviewBody');
+            previewBody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                previewBody.innerHTML = `<tr><td colspan="9" style="text-align:center; color: var(--text-muted); padding: 20px;">Tidak ada data jurnal pada periode ${periodLabel}.</td></tr>`;
+            } else {
+                filtered.forEach((entry, idx) => {
+                    if (entry.result >= 0) grossProfit += entry.result;
+                    else grossLoss += entry.result;
+
+                    const sop = evaluateSOP(entry.modal, entry.result);
+                    if (!sop.isViolation) compliantCount++;
+
+                    const pct = ((entry.result / entry.modal) * 100).toFixed(2);
+                    const sign = entry.result >= 0 ? '+' : '';
+                    const color = entry.result >= 0 ? 'var(--success)' : 'var(--danger)';
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${idx + 1}</td>
+                        <td>${entry.time}</td>
+                        <td><strong>${entry.name}</strong></td>
+                        <td>${entry.modal.toLocaleString()} USC</td>
+                        <td>${entry.pair}</td>
+                        <td>${entry.lot.toFixed(2)}</td>
+                        <td style="color:${color}; font-weight:700;">${sign}${entry.result.toFixed(2)} USC</td>
+                        <td style="color:${color};">${sign}${pct}%</td>
+                        <td><span class="badge ${sop.badgeClass}">${sop.label}</span></td>
+                    `;
+                    previewBody.appendChild(tr);
+                });
+            }
+
+            const netPeriod = grossProfit + grossLoss;
+            const complianceRate = filtered.length > 0 ? Math.round((compliantCount / filtered.length) * 100) : 100;
+
+            document.getElementById('repCount').textContent = `${filtered.length} Sesi`;
+            document.getElementById('repGrossProfit').textContent = `+${grossProfit.toFixed(2)} USC`;
+            document.getElementById('repGrossLoss').textContent = `${grossLoss.toFixed(2)} USC`;
+
+            const repNetEl = document.getElementById('repNetPnl');
+            repNetEl.textContent = `${netPeriod >= 0 ? '+' : ''}${netPeriod.toFixed(2)} USC`;
+            repNetEl.style.color = netPeriod >= 0 ? 'var(--success)' : 'var(--danger)';
+
+            document.getElementById('repCompliance').textContent = `${complianceRate}%`;
+        }
+
+        document.getElementById('reportMonthFilter').addEventListener('change', renderMonthlyReportPreview);
+        document.getElementById('reportYearFilter').addEventListener('change', renderMonthlyReportPreview);
+
+        // ==========================================
+        // FITUR CETAK / SIMPAN PDF RESMI BER-KOP
+        // ==========================================
+        document.getElementById('btnPrintOfficialPDF').addEventListener('click', () => {
+            const filtered = getFilteredJournals();
+            const periodLabel = getPeriodLabel();
+            const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            let grossProfit = 0;
+            let grossLoss = 0;
+            let violations = 0;
+
+            let tableRowsHtml = '';
+            if (filtered.length === 0) {
+                tableRowsHtml = `<tr><td colspan="9" style="text-align:center; padding: 16px;">Belum ada data transaksi pada periode ini.</td></tr>`;
+            } else {
+                filtered.forEach((e, i) => {
+                    if (e.result >= 0) grossProfit += e.result;
+                    else grossLoss += e.result;
+
+                    const sop = evaluateSOP(e.modal, e.result);
+                    if (sop.isViolation) violations++;
+
+                    const pct = ((e.result / e.modal) * 100).toFixed(2);
+                    const sign = e.result >= 0 ? '+' : '';
+                    const color = e.result >= 0 ? '#15803d' : '#b91c1c';
+
+                    tableRowsHtml += `
+                        <tr>
+                            <td style="text-align:center;">${i + 1}</td>
+                            <td>${e.time}</td>
+                            <td><strong>${e.name}</strong></td>
+                            <td style="text-align:right;">${e.modal.toLocaleString()}</td>
+                            <td style="text-align:center;">${e.pair}</td>
+                            <td style="text-align:center;">${e.lot.toFixed(2)}</td>
+                            <td style="text-align:right; color:${color}; font-weight:bold;">${sign}${e.result.toFixed(2)}</td>
+                            <td style="text-align:right; color:${color};">${sign}${pct}%</td>
+                            <td>${sop.label}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const netPnl = grossProfit + grossLoss;
+            const netSign = netPnl >= 0 ? '+' : '';
+
+            const printWindow = window.open('', '_blank', 'width=950,height=750');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="id">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Laporan Bulanan Divisi Investasi - ${periodLabel}</title>
+                    <style>
+                        @page { size: A4 portrait; margin: 18mm 15mm; }
+                        body {
+                            font-family: 'Segoe UI', Arial, sans-serif;
+                            color: #1e293b;
+                            font-size: 11pt;
+                            line-height: 1.45;
+                            margin: 0;
+                            padding: 20px;
+                        }
+                        .letterhead {
+                            border-bottom: 3px double #0f172a;
+                            padding-bottom: 12px;
+                            margin-bottom: 20px;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: flex-end;
+                        }
+                        .company-info h1 {
+                            margin: 0;
+                            font-size: 16pt;
+                            color: #0f172a;
+                            letter-spacing: 0.5px;
+                        }
+                        .company-info p {
+                            margin: 3px 0 0;
+                            font-size: 9pt;
+                            color: #475569;
+                        }
+                        .doc-meta {
+                            text-align: right;
+                            font-size: 9pt;
+                            color: #334155;
+                        }
+                        .doc-title {
+                            text-align: center;
+                            margin: 18px 0;
+                        }
+                        .doc-title h2 {
+                            margin: 0;
+                            font-size: 13pt;
+                            text-transform: uppercase;
+                            text-decoration: underline;
+                            color: #0f172a;
+                        }
+                        .doc-title p {
+                            margin: 4px 0 0;
+                            font-size: 10pt;
+                            color: #475569;
+                        }
+                        .kpi-grid {
+                            display: table;
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 20px;
+                        }
+                        .kpi-cell {
+                            display: table-cell;
+                            width: 25%;
+                            border: 1px solid #cbd5e1;
+                            padding: 10px 12px;
+                            background: #f8fafc;
+                        }
+                        .kpi-cell span {
+                            display: block;
+                            font-size: 8pt;
+                            text-transform: uppercase;
+                            color: #64748b;
+                        }
+                        .kpi-cell strong {
+                            font-size: 12pt;
+                            color: #0f172a;
+                        }
+                        table.data-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 9pt;
+                            margin-bottom: 24px;
+                        }
+                        table.data-table th, table.data-table td {
+                            border: 1px solid #94a3b8;
+                            padding: 7px 8px;
+                        }
+                        table.data-table th {
+                            background-color: #0f172a;
+                            color: #ffffff;
+                            text-transform: uppercase;
+                            font-size: 8pt;
+                        }
+                        table.data-table tr:nth-child(even) {
+                            background-color: #f8fafc;
+                        }
+                        .signature-section {
+                            width: 100%;
+                            display: table;
+                            margin-top: 35px;
+                            page-break-inside: avoid;
+                        }
+                        .sig-box {
+                            display: table-cell;
+                            width: 50%;
+                            text-align: center;
+                            vertical-align: top;
+                        }
+                        .sig-space {
+                            height: 65px;
+                        }
+                        .sig-name {
+                            font-weight: bold;
+                            text-decoration: underline;
+                        }
+                        @media print {
+                            body { padding: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print" style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px 14px; margin-bottom:16px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:9.5pt; color:#1e40af;"><strong>Pratinjau Dokumen Resmi:</strong> Klik tombol di kanan untuk menyimpan sebagai PDF atau mencetak.</span>
+                        <button onclick="window.print()" style="background:#2563eb; color:#fff; border:none; padding:8px 16px; border-radius:5px; font-weight:bold; cursor:pointer;">Cetak / Simpan PDF</button>
+                    </div>
+
+                    <div class="letterhead">
+                        <div class="company-info">
+                            <h1>PT SAMBAVA INVESTASI NUSANTARA</h1>
+                            <p>Divisi Investasi & Manajemen Risiko Aset Digital / Forex</p>
+                            <p>Dokumen Internal Resmi &bull; Rahasia Perusahaan</p>
+                        </div>
+                        <div class="doc-meta">
+                            <div><strong>No. Dok:</strong> LAP-INV/${document.getElementById('reportYearFilter').value}/${document.getElementById('reportMonthFilter').value}</div>
+                            <div><strong>Tanggal Cetak:</strong> ${printDate}</div>
+                        </div>
+                    </div>
+
+                    <div class="doc-title">
+                        <h2>LAPORAN REKAPITULASI PERFORMA BULANAN DIVISI INVESTASI</h2>
+                        <p>Periode Laporan: <strong>${periodLabel}</strong></p>
+                    </div>
+
+                    <div class="kpi-grid">
+                        <div class="kpi-cell">
+                            <span>Total Sesi Trading</span>
+                            <strong>${filtered.length} Transaksi</strong>
+                        </div>
+                        <div class="kpi-cell">
+                            <span>Akumulasi Profit</span>
+                            <strong style="color:#15803d;">+${grossProfit.toFixed(2)} USC</strong>
+                        </div>
+                        <div class="kpi-cell">
+                            <span>Akumulasi Loss</span>
+                            <strong style="color:#b91c1c;">${grossLoss.toFixed(2)} USC</strong>
+                        </div>
+                        <div class="kpi-cell">
+                            <span>Net Profit / Loss</span>
+                            <strong style="color:${netPnl >= 0 ? '#15803d' : '#b91c1c'};">${netSign}${netPnl.toFixed(2)} USC</strong>
+                        </div>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:30px;">No</th>
+                                <th>Waktu</th>
+                                <th>Nama Anggota</th>
+                                <th>Modal (USC)</th>
+                                <th>Pair</th>
+                                <th>Lot</th>
+                                <th>Hasil (USC)</th>
+                                <th>Retur (%)</th>
+                                <th>Evaluasi SOP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRowsHtml}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background:#e2e8f0; font-weight:bold;">
+                                <td colspan="6" style="text-align:right;">TOTAL NET PROFIT / LOSS PERIODE (${periodLabel.toUpperCase()}):</td>
+                                <td style="text-align:right; color:${netPnl >= 0 ? '#15803d' : '#b91c1c'};">${netSign}${netPnl.toFixed(2)} USC</td>
+                                <td colspan="2">Pelanggaran SOP: ${violations}x</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <p style="font-size:9pt; color:#475569;">
+                        <strong>Catatan Kepatuhan SOP:</strong> Batas kerugian harian maksimal (<em>Max Daily Loss</em>) ditetapkan sebesar 2.0% dari modal akun. Anggota dengan status pelanggaran wajib menjalani evaluasi manajemen risiko bersama Ketua Divisi.
+                    </p>
+
+                    <div class="signature-section">
+                        <div class="sig-box">
+                            <div>Mengetahui & Menyetujui,</div>
+                            <div><strong>Kepala Direktur / Wakil Direktur</strong></div>
+                            <div class="sig-space"></div>
+                            <div class="sig-name">( .................................................. )</div>
+                            <div style="font-size:8.5pt; color:#64748b;">PT Sambava Investasi Nusantara</div>
+                        </div>
+                        <div class="sig-box">
+                            <div>Disusun & Dilaporkan Oleh,</div>
+                            <div><strong>Ketua Divisi Investasi</strong></div>
+                            <div class="sig-space"></div>
+                            <div class="sig-name">( .................................................. )</div>
+                            <div style="font-size:8.5pt; color:#64748b;">Divisi Investasi</div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        });
+
+        // ==========================================
+        // FITUR EKSPOR CSV / EXCEL RAPI (PEMISAH ;)
+        // ==========================================
+        document.getElementById('btnExportExcelCSV').addEventListener('click', () => {
+            const filtered = getFilteredJournals();
+            const periodLabel = getPeriodLabel();
+
+            // Menggunakan UTF-8 BOM (\uFEFF) dan pemisah titik koma (;) agar rapi otomatis di Excel Indonesia
+            let csv = "\uFEFF";
+            csv += "PT SAMBAVA INVESTASI NUSANTARA\n";
+            csv += `LAPORAN REKAPITULASI BULANAN DIVISI INVESTASI - PERIODE: ${periodLabel.toUpperCase()}\n\n`;
+            csv += "No;Waktu;Nama Anggota;Modal (USC);Pair;Lot;Hasil (USC);Persentase Retur (%);Status SOP;Catatan\n";
+
+            let totalNet = 0;
+            filtered.forEach((e, idx) => {
+                totalNet += e.result;
+                const pct = ((e.result / e.modal) * 100).toFixed(2);
+                const sop = evaluateSOP(e.modal, e.result).label;
+                const cleanNotes = e.notes.replace(/;/g, ',').replace(/"/g, '""');
+                csv += `${idx + 1};"${e.time}";"${e.name}";${e.modal};"${e.pair}";${e.lot.toFixed(2)};${e.result.toFixed(2)};${pct}%;"${sop}";"${cleanNotes}"\n`;
+            });
+
+            csv += `\n;;;;;;TOTAL NET P&L;${totalNet.toFixed(2)} USC;;\n`;
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Laporan_Bulanan_Investasi_${periodLabel.replace(/\s+/g, '_')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
 
         // ==========================================
         // VALIDASI INPUT JURNAL ANGGOTA
@@ -905,7 +1469,6 @@
             const result = parseFloat(document.getElementById('tradeResult').value);
             const notes = document.getElementById('tradeNotes').value.trim();
 
-            // Validasi Nama terhadap Daftar Resmi Perusahaan (Case-Insensitive)
             const matchedMember = approvedMembers.find(
                 m => m.toLowerCase() === rawName.toLowerCase()
             );
@@ -919,12 +1482,17 @@
             }
 
             const now = new Date();
-            const formattedTime = now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const hh = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
 
             journalEntries.push({
                 id: Date.now(),
-                time: formattedTime,
-                name: matchedMember, // Gunakan penulisan kapitalisasi resmi
+                isoDate: `${yyyy}-${mm}-${dd}`,
+                time: `${dd}/${mm}/${yyyy} ${hh}:${min}`,
+                name: matchedMember,
                 modal,
                 pair,
                 lot,
@@ -950,6 +1518,7 @@
                 adminLoginPanel.style.display = 'none';
                 adminDashboardContent.style.display = 'block';
                 document.getElementById('adminPinInput').value = '';
+                renderMonthlyReportPreview();
             } else {
                 alert("PIN Admin salah!");
             }
@@ -988,24 +1557,6 @@
                 journalEntries = [];
                 saveState();
             }
-        });
-
-        document.getElementById('btnExportCSV').addEventListener('click', () => {
-            let csvContent = "data:text/csv;charset=utf-8,Waktu,Nama Anggota,Modal (USC),Pair,Lot,Hasil (USC),Persentase (%),Status SOP,Catatan\n";
-            journalEntries.forEach(e => {
-                const pct = ((e.result / e.modal) * 100).toFixed(2);
-                const sop = evaluateSOP(e.modal, e.result).label;
-                const row = `"${e.time}","${e.name}",${e.modal},"${e.pair}",${e.lot},${e.result},${pct}%,"${sop}","${e.notes.replace(/"/g, '""')}"`;
-                csvContent += row + "\n";
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Laporan_Divisi_Investasi_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         });
 
         // Render awal saat halaman dibuka
